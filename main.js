@@ -2,23 +2,29 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.mod
 
 import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
 const particles = [];
-const upper = [300, 300, 300];
+const upper = [500, 500, 500];
 const lower = [-upper[0], 0, -upper[2]];
+var Paused = false;
 
 function vectorAdd(a, b){
   return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 } 
 
+function getAbs(velocity) {
+  return Math.sqrt(velocity.reduce((sum, value) => sum + Math.pow(value, 2), 0));
+}
+
 function coloumbs(a, b){
-  const threshold = a.radius - 5;
+  const threshold = a.radius * 3/2;
+  let mag = 1;
   const x = a.pos[0] - b.pos[0];
   const y = a.pos[1] - b.pos[1];
   const z = a.pos[2] - b.pos[2];
   const r = Math.sqrt(x*x + y*y + z*z);
-  if (r === 0) a = null;
+  if (r <= threshold) mag = -2;
   const theta = Math.atan2(y, x);
   const phi = Math.atan2(z, r);
-  const mag = 10 * (a.q * b.q) / (r*r);
+  mag *= (5 * (a.q * b.q) / (r*r));
   return [mag * Math.cos(theta), mag * Math.sin(theta), mag * phi];
 }
 
@@ -26,7 +32,7 @@ const makeParticle = () => {
   particles.push({
     pos: [(2 * upper[0]) * Math.random() - upper[0], 10 + 50 * Math.random(), (2 *upper[2]) * Math.random() - upper[2]],
     velocity: [0, 0, 0],
-    radius: 5,
+    radius: 10,
     q: Math.random() > 0.5 ? 1 : -1,
     update() {
       for(let i = 0; i < this.pos.length; i++){
@@ -37,9 +43,9 @@ const makeParticle = () => {
   });
 }
 
-for(let i = 0; i < 2; i++){
-  makeParticle();
-}
+
+
+
 
 
 
@@ -118,6 +124,11 @@ class BasicWorldDemo {
     plane.rotation.x = -Math.PI / 2;
     this._scene.add(plane);
 
+    for(let i = 0; i <80; i++){
+      makeParticle();
+    }
+    
+
     particles.forEach((particle, i) => {
       const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(particle.radius, 100, 100),
@@ -144,9 +155,9 @@ class BasicWorldDemo {
     requestAnimationFrame(() => {
       particles.forEach((particle, i) => {
         particles.forEach(function(e) {
-          if (e != particle) particle.velocity = vectorAdd(particle.velocity, coloumbs(particle, e));
+          if (e != particle && !Paused) particle.velocity = vectorAdd(particle.velocity, coloumbs(particle, e));
         })
-        particle.update();
+        if (!Paused ) particle.update();
         let sphere = this._scene.getObjectByName(`particle${i}`);
         if (sphere) sphere.position.set(particle.pos[0], particle.pos[1], particle.pos[2])
       })
@@ -158,6 +169,15 @@ class BasicWorldDemo {
   }
 }
 
+// Retrieve the button element
+const stopButton = document.getElementById("stop");
+
+// Add an event listener to the button
+stopButton.addEventListener("click", function() {
+  // Code to execute when the button is clicked
+  Paused = !Paused
+  // Add your desired functionality here
+});
 
 let _APP = null;
 
