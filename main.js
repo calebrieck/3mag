@@ -44,11 +44,6 @@ const makeParticle = () => {
 }
 
 
-
-
-
-
-
 class BasicWorldDemo {
   constructor() {
     this._Initialize();
@@ -169,14 +164,10 @@ class BasicWorldDemo {
   }
 }
 
-// Retrieve the button element
 const stopButton = document.getElementById("stop");
 
-// Add an event listener to the button
 stopButton.addEventListener("click", function() {
-  // Code to execute when the button is clicked
   Paused = !Paused
-  // Add your desired functionality here
 });
 
 let _APP = null;
